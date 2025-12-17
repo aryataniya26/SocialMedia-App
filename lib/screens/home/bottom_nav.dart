@@ -15,30 +15,60 @@ class BottomNavScreen extends StatefulWidget {
 
 class _BottomNavScreenState extends State<BottomNavScreen> {
   int _currentIndex = 0;
+  late PageController _pageController;
 
   final List<Widget> _screens = [
     const HomeScreen(),
     const SearchScreen(),
     const CreateMenuScreen(),
-    const ReelsScreen(), // ADDED REELS
+    const ReelsScreen(),
     const ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
         if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
+          _onItemTapped(0);
           return false;
         }
         return true;
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          physics: const BouncingScrollPhysics(),
           children: _screens,
         ),
         bottomNavigationBar: Container(
@@ -97,11 +127,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     final isSelected = _currentIndex == index;
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
+      onTap: () => _onItemTapped(index),
       child: Container(
         padding: const EdgeInsets.all(10),
         child: Icon(
@@ -115,11 +141,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 
   Widget _buildCreateButton() {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentIndex = 2;
-        });
-      },
+      onTap: () => _onItemTapped(2),
       child: Container(
         width: 48,
         height: 48,
@@ -142,13 +164,12 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 }
 
 
-
 // import 'package:flutter/material.dart';
 // import '../../core/constants/app_colors.dart';
 // import 'home_screen.dart';
 // import '../search/search_screen.dart';
 // import '../create/create_menu_screen.dart';
-// import '../notifications/notifications_screen.dart';
+// import '../reels/reels_screen.dart';
 // import '../profile/profile_screen.dart';
 //
 // class BottomNavScreen extends StatefulWidget {
@@ -165,7 +186,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 //     const HomeScreen(),
 //     const SearchScreen(),
 //     const CreateMenuScreen(),
-//     const NotificationsScreen(),
+//     const ReelsScreen(), // ADDED REELS
 //     const ProfileScreen(),
 //   ];
 //
@@ -270,7 +291,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 //         height: 48,
 //         decoration: BoxDecoration(
 //           gradient: const LinearGradient(
-//             colors: [AppColors.primary, Color(0xFF7C3AED)],
+//             colors: [AppColors.primary, Color(0xFF9333EA)],
 //             begin: Alignment.topLeft,
 //             end: Alignment.bottomRight,
 //           ),
@@ -285,126 +306,3 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
 //     );
 //   }
 // }
-//
-// // import 'package:flutter/material.dart';
-// // import '../../core/constants/app_colors.dart';
-// // import 'home_screen.dart';
-// // import '../search/search_screen.dart';
-// // import '../create/create_menu_screen.dart';
-// // import '../notifications/notifications_screen.dart';
-// // import '../profile/profile_screen.dart';
-// //
-// // class BottomNavScreen extends StatefulWidget {
-// //   const BottomNavScreen({super.key});
-// //
-// //   @override
-// //   State<BottomNavScreen> createState() => _BottomNavScreenState();
-// // }
-// //
-// // class _BottomNavScreenState extends State<BottomNavScreen> {
-// //   int _currentIndex = 0;
-// //
-// //   final List<Widget> _screens = [
-// //     const HomeScreen(),
-// //     const SearchScreen(),
-// //     const CreateMenuScreen(),
-// //     const NotificationsScreen(),
-// //     const ProfileScreen(),
-// //   ];
-// //
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     return WillPopScope(
-// //       onWillPop: () async {
-// //         if (_currentIndex != 0) {
-// //           setState(() {
-// //             _currentIndex = 0;
-// //           });
-// //           return false;
-// //         }
-// //         return true;
-// //       },
-// //       child: Scaffold(
-// //         body: IndexedStack(
-// //           index: _currentIndex,
-// //           children: _screens,
-// //         ),
-// //         bottomNavigationBar: Container(
-// //           decoration: BoxDecoration(
-// //             color: Colors.white,
-// //             boxShadow: [
-// //               BoxShadow(
-// //                 color: Colors.black.withOpacity(0.05),
-// //                 blurRadius: 10,
-// //                 offset: const Offset(0, -2),
-// //               ),
-// //             ],
-// //           ),
-// //           child: SafeArea(
-// //             child: Padding(
-// //               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-// //               child: Row(
-// //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-// //                 children: [
-// //                   _buildNavItem(Icons.home_rounded, 0),
-// //                   _buildNavItem(Icons.search_rounded, 1),
-// //                   _buildCreateButton(),
-// //                   _buildNavItem(Icons.video_collection_rounded, 3),
-// //                   _buildNavItem(Icons.person_rounded, 4),
-// //                 ],
-// //               ),
-// //             ),
-// //           ),
-// //         ),
-// //       ),
-// //     );
-// //   }
-// //
-// //   Widget _buildNavItem(IconData icon, int index) {
-// //     final isSelected = _currentIndex == index;
-// //
-// //     return GestureDetector(
-// //       onTap: () {
-// //         setState(() {
-// //           _currentIndex = index;
-// //         });
-// //       },
-// //       child: Container(
-// //         padding: const EdgeInsets.all(12),
-// //         decoration: BoxDecoration(
-// //           color: isSelected
-// //               ? AppColors.primary.withOpacity(0.1)
-// //               : Colors.transparent,
-// //           borderRadius: BorderRadius.circular(12),
-// //         ),
-// //         child: Icon(
-// //           icon,
-// //           color: isSelected ? AppColors.primary : AppColors.textLight,
-// //           size: 28,
-// //         ),
-// //       ),
-// //     );
-// //   }
-// //
-// //   Widget _buildCreateButton() {
-// //     return GestureDetector(
-// //       onTap: () {
-// //         setState(() {
-// //           _currentIndex = 2;
-// //         });
-// //       },
-// //       child: Container(
-// //         padding: const EdgeInsets.all(12),
-// //         decoration: BoxDecoration(
-// //           gradient: AppColors.primaryGradient,
-// //           borderRadius: BorderRadius.circular(12),
-// //         ),
-// //         child: const Icon(
-// //           Icons.add_rounded,
-// //           color: Colors.white,
-// //           size: 28,
-// //         ),
-// //       ),
-// //     );
-// //   }
-// // }

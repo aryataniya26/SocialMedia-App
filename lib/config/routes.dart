@@ -1,3 +1,9 @@
+import 'package:clickme_app/screens/auth/forgot_password_screen.dart';
+import 'package:clickme_app/screens/auth/reset_password_screen.dart';
+import 'package:clickme_app/screens/post/post_detail_screen.dart';
+import 'package:clickme_app/screens/profile/followers_screen.dart';
+import 'package:clickme_app/screens/profile/following_screen.dart';
+import 'package:clickme_app/screens/profile/suggestions_screen.dart';
 import 'package:flutter/material.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -15,9 +21,50 @@ class AppRoutes {
   static const String profileSetup = '/profile-setup';
   static const String interests = '/interests';
   static const String bottomNav = '/bottom-nav';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
+  static const String followers = '/followers';
+  static const String following = '/following';
+  static const String suggestions = '/suggestions';
+  static const String postDetail = '/post-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case AppRoutes.forgotPassword:
+        return MaterialPageRoute(
+          builder: (_) => const ForgotPasswordScreen(),
+        );
+
+      case AppRoutes.followers:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => FollowersScreen(
+            userId: args?['userId'] ?? '',
+            title: args?['title'],
+          ),
+        );
+
+
+
+
+      case AppRoutes.following:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => FollowingScreen(
+            userId: args?['userId'] ?? '',
+            title: args?['title'],
+          ),
+        );
+
+      case AppRoutes.suggestions:
+        return MaterialPageRoute(
+          builder: (_) => const SuggestionsScreen(),
+        );
+      case AppRoutes.resetPassword:
+        final token = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => ResetPasswordScreen(token: token),
+        );
       case splash:
         return MaterialPageRoute(builder: (_) => const SplashScreen());
 
@@ -31,7 +78,7 @@ class AppRoutes {
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (_) => OtpScreen(
-          mobile: args?['mobile'],
+          // mobile: args?['mobile'],
             email: args?['email'],
             purpose: args?['purpose'] ?? 'login',
           ),

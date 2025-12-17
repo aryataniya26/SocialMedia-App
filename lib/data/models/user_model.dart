@@ -1,5 +1,5 @@
 class UserModel {
-  final String userId;
+  final String id;
   final String firstName;
   final String lastName;
   final String? email;
@@ -9,20 +9,57 @@ class UserModel {
   final String? coverPhoto;
   final String userType;
   final String? bio;
-  final String profileType; // personal or business
-  final String status; // active, inactive, suspended
+  final String profileType;
+  final String status;
   final bool? isPrivate;
-  final int loginAttempts;
-  final DateTime? lastLogin;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? accessToken;
+  final String? refreshToken;
 
-  // Computed properties
-  String get fullName => '$firstName $lastName';
-  String get username => email?.split('@').first ?? firstName.toLowerCase();
+
+
+
+
+  static UserModel? fromAuthResponse(Map<String, dynamic> response) {
+    try {
+      final data = response['data'];
+      if (data == null) return null;
+
+      return UserModel(
+        id: data['_id']?.toString() ?? '',
+        firstName: data['firstName']?.toString() ?? '',
+        lastName: data['lastName']?.toString() ?? '',
+        email: data['email']?.toString(),
+        phone: data['phone']?.toString(),
+        avatar: data['avatar']?.toString(),
+        profileImage: data['profileImage']?.toString(),
+        coverPhoto: data['coverPhoto']?.toString(),
+        userType: data['userType']?.toString() ?? 'user',
+        bio: data['bio']?.toString(),
+        profileType: data['profile_type']?.toString() ?? 'personal',
+        status: data['status']?.toString() ?? 'active',
+        isPrivate: data['isPrivate'] ?? false,
+        createdAt: data['createdAt'] != null
+            ? DateTime.parse(data['createdAt'])
+            : DateTime.now(),
+        updatedAt: data['updatedAt'] != null
+            ? DateTime.parse(data['updatedAt'])
+            : DateTime.now(),
+        accessToken: data['accessToken']?.toString(),
+        refreshToken: data['refreshToken']?.toString(),
+      );
+    } catch (e) {
+      print('Error parsing user from auth response: $e');
+      return null;
+    }
+  }
+
+
+
 
   UserModel({
-    required this.userId,
+    required this.id,
     required this.firstName,
     required this.lastName,
     this.email,
@@ -35,43 +72,41 @@ class UserModel {
     this.profileType = 'personal',
     this.status = 'active',
     this.isPrivate,
-    this.loginAttempts = 0,
-    this.lastLogin,
     required this.createdAt,
     required this.updatedAt,
+    this.accessToken,
+    this.refreshToken,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userId: json['_id']?.toString() ?? json['userId']?.toString() ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      email: json['email'],
-      phone: json['phone'],
-      avatar: json['avatar'],
-      profileImage: json['profileImage'],
-      coverPhoto: json['coverPhoto'],
-      userType: json['userType'] ?? 'user',
-      bio: json['bio'],
-      profileType: json['profile_type'] ?? 'personal',
-      status: json['status'] ?? 'active',
-      isPrivate: json['isPrivate'],
-      loginAttempts: json['loginAttempts'] ?? 0,
-      lastLogin: json['lastLogin'] != null
-          ? DateTime.parse(json['lastLogin'])
-          : null,
+      id: json['_id']?.toString() ?? '',
+      firstName: json['firstName']?.toString() ?? '',
+      lastName: json['lastName']?.toString() ?? '',
+      email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
+      avatar: json['avatar']?.toString(),
+      profileImage: json['profileImage']?.toString(),
+      coverPhoto: json['coverPhoto']?.toString(),
+      userType: json['userType']?.toString() ?? 'user',
+      bio: json['bio']?.toString(),
+      profileType: json['profile_type']?.toString() ?? 'personal',
+      status: json['status']?.toString() ?? 'active',
+      isPrivate: json['isPrivate'] ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
           : DateTime.now(),
+      accessToken: json['accessToken']?.toString(),
+      refreshToken: json['refreshToken']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': userId,
+      '_id': id,
       'firstName': firstName,
       'lastName': lastName,
       'email': email,
@@ -84,16 +119,17 @@ class UserModel {
       'profile_type': profileType,
       'status': status,
       'isPrivate': isPrivate,
-      'loginAttempts': loginAttempts,
-      'lastLogin': lastLogin?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'accessToken': accessToken,
+      'refreshToken': refreshToken,
     };
   }
 
-  // Copy with method for updating user data
+  String get fullName => '$firstName $lastName';
+
   UserModel copyWith({
-    String? userId,
+    String? id,
     String? firstName,
     String? lastName,
     String? email,
@@ -106,13 +142,13 @@ class UserModel {
     String? profileType,
     String? status,
     bool? isPrivate,
-    int? loginAttempts,
-    DateTime? lastLogin,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? accessToken,
+    String? refreshToken,
   }) {
     return UserModel(
-      userId: userId ?? this.userId,
+      id: id ?? this.id,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -125,93 +161,10 @@ class UserModel {
       profileType: profileType ?? this.profileType,
       status: status ?? this.status,
       isPrivate: isPrivate ?? this.isPrivate,
-      loginAttempts: loginAttempts ?? this.loginAttempts,
-      lastLogin: lastLogin ?? this.lastLogin,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
     );
   }
 }
-
-
-// class UserModel {
-//   final String userId;
-//   final String fullName;
-//   final String username;
-//   final String? email;
-//   final String? mobile;
-//   final String? profilePic;
-//   final String? coverPic;
-//   final String? bio;
-//   final String? gender;
-//   final String? dob;
-//   final String? category;
-//   final String profileType;
-//   final int followersCount;
-//   final int followingCount;
-//   final int postsCount;
-//   final DateTime createdAt;
-//
-//   UserModel({
-//     required this.userId,
-//     required this.fullName,
-//     required this.username,
-//     this.email,
-//     this.mobile,
-//     this.profilePic,
-//     this.coverPic,
-//     this.bio,
-//     this.gender,
-//     this.dob,
-//     this.category,
-//     this.profileType = 'public',
-//     this.followersCount = 0,
-//     this.followingCount = 0,
-//     this.postsCount = 0,
-//     required this.createdAt,
-//   });
-//
-//   factory UserModel.fromJson(Map<String, dynamic> json) {
-//     return UserModel(
-//       userId: json['user_id']?.toString() ?? '',
-//       fullName: json['full_name'] ?? '',
-//       username: json['username'] ?? '',
-//       email: json['email'],
-//       mobile: json['mobile'],
-//       profilePic: json['profile_pic'],
-//       coverPic: json['cover_pic'],
-//       bio: json['bio'],
-//       gender: json['gender'],
-//       dob: json['dob'],
-//       category: json['category'],
-//       profileType: json['profile_type'] ?? 'public',
-//       followersCount: json['followers_count'] ?? 0,
-//       followingCount: json['following_count'] ?? 0,
-//       postsCount: json['posts_count'] ?? 0,
-//       createdAt: json['created_at'] != null
-//           ? DateTime.parse(json['created_at'])
-//           : DateTime.now(),
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'user_id': userId,
-//       'full_name': fullName,
-//       'username': username,
-//       'email': email,
-//       'mobile': mobile,
-//       'profile_pic': profilePic,
-//       'cover_pic': coverPic,
-//       'bio': bio,
-//       'gender': gender,
-//       'dob': dob,
-//       'category': category,
-//       'profile_type': profileType,
-//       'followers_count': followersCount,
-//       'following_count': followingCount,
-//       'posts_count': postsCount,
-//       'created_at': createdAt.toIso8601String(),
-//     };
-//   }
-// }

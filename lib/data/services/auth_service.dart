@@ -1,5 +1,4 @@
-// lib/data/services/auth_service.dart
-
+import 'dart:convert';
 import 'api_service.dart';
 import 'storage_service.dart';
 import '../../core/constants/api_endpoints.dart';
@@ -7,131 +6,232 @@ import '../../core/constants/api_endpoints.dart';
 class AuthService {
   final ApiService _api = ApiService();
 
-  // ==================== SEND OTP ====================
-  Future<Map<String, dynamic>> sendOtp({
-    required String mobileOrEmail,
-    required String purpose,
+  // ==================== REGISTER (Step 1: Send OTP) ====================
+  Future<Map<String, dynamic>> register({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String password,
+    String? phone,
   }) async {
     try {
-      print('📱 AuthService: Sending OTP to $mobileOrEmail');
+      print('📝 AuthService: Registering $email');
 
       final response = await _api.post(
-        ApiEndpoints.sendOtp,
+        ApiEndpoints.register,
         body: {
-          if (mobileOrEmail.contains('@'))
-            'email': mobileOrEmail
-          else
-            'mobile': mobileOrEmail,
-          'purpose': purpose,
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
+          'password': password,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
         },
         requiresAuth: false,
       );
 
-      print('✅ AuthService: Send OTP Response - $response');
+      print('✅ Register Response: ${json.encode(response)}');
       return response;
     } catch (e) {
-      print('❌ AuthService: Send OTP Error - $e');
+      print('❌ Register Error: $e');
       return {
         'success': false,
-        'message': 'Failed to send OTP: ${e.toString()}',
+        'message': 'Registration failed: ${e.toString()}',
+        'statusCode': 500,
       };
     }
   }
 
-  // ==================== VERIFY OTP ====================
-  Future<Map<String, dynamic>> verifyOtp({
-    required String mobileOrEmail,
+
+  // ==================== RESET PASSWORD ====================
+  Future<Map<String, dynamic>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      print('🔑 AuthService: Resetting password');
+
+      final response = await _api.post(
+        ApiEndpoints.resetPassword,
+        body: {
+          'token': token,
+          'newPassword': newPassword,
+        },
+        requiresAuth: false,
+      );
+
+      print('✅ Reset Password Response: ${json.encode(response)}');
+      return response;
+    } catch (e) {
+      print('❌ Reset Password Error: $e');
+      return {
+        'success': false,
+        'message': 'Password reset failed: ${e.toString()}',
+        'statusCode': 500,
+      };
+    }
+  }
+
+
+  // ==================== VERIFY REGISTRATION OTP (Step 2) ====================
+  Future<Map<String, dynamic>> verifyRegistrationOtp({
+    required String email,
+    required String userId,
+    required String otp,
+    String? phone,
+  }) async {
+    try {
+      print('🔐 AuthService: Verifying registration OTP for $email');
+
+      final response = await _api.post(
+        ApiEndpoints.verifyRegister,
+        body: {
+          'email': email,
+          'userId': userId,
+          'otp': otp,
+          if (phone != null && phone.isNotEmpty) 'phone': phone,
+        },
+        requiresAuth: false,
+      );
+
+      print('✅ Verify Registration OTP Response: ${json.encode(response)}');
+      return response;
+    } catch (e) {
+      print('❌ Verify Registration OTP Error: $e');
+      return {
+        'success': false,
+        'message': 'OTP verification failed: ${e.toString()}',
+        'statusCode': 500,
+      };
+    }
+  }
+
+  // // ==================== LOGIN (Step 1: Send OTP) ====================
+  // lib/data/services/auth_service.dart
+// login method change karein:
+
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      print('🔐 AuthService: Login attempt for $email');
+
+      final response = await _api.post(
+        ApiEndpoints.login,
+        body: {
+          'email': email,
+          'password': password,
+        },
+        requiresAuth: false,
+      );
+
+      print('✅ Login Response: ${json.encode(response)}');
+
+      // ✅ DIRECT LOGIN - Save tokens if successful
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+
+        if (data['accessToken'] != null) {
+          await StorageService.saveToken(data['accessToken']);
+          print('🔑 Access token saved');
+        }
+
+        if (data['refreshToken'] != null) {
+          await StorageService.saveRefreshToken(data['refreshToken']);
+          print('🔑 Refresh token saved');
+        }
+
+        if (data['user'] != null) {
+          await StorageService.saveUser(data['user']);
+          print('👤 User data saved');
+        }
+      }
+
+      return response;
+    } catch (e) {
+      print('❌ Login Error: $e');
+      return {
+        'success': false,
+        'message': 'Login failed: ${e.toString()}',
+        'statusCode': 500,
+      };
+    }
+  }
+
+  // Future<Map<String, dynamic>> login({
+  //   required String email,
+  //   required String password,
+  // }) async {
+  //   try {
+  //     print('🔐 AuthService: Login attempt for $email');
+  //
+  //     final response = await _api.post(
+  //       ApiEndpoints.login,
+  //       body: {
+  //         'email': email,
+  //         'password': password,
+  //       },
+  //       requiresAuth: false,
+  //     );
+  //
+  //     print('✅ Login Response: ${json.encode(response)}');
+  //     return response;
+  //   } catch (e) {
+  //     print('❌ Login Error: $e');
+  //     return {
+  //       'success': false,
+  //       'message': 'Login failed: ${e.toString()}',
+  //       'statusCode': 500,
+  //     };
+  //   }
+  // }
+
+  // ==================== VERIFY LOGIN OTP (Step 2) ====================
+  Future<Map<String, dynamic>> verifyLoginOtp({
+    required String email,
     required String otp,
   }) async {
     try {
-      print('🔐 AuthService: Verifying OTP for $mobileOrEmail');
+      print('🔐 AuthService: Verifying login OTP for $email');
 
       final response = await _api.post(
-        ApiEndpoints.verifyOtp,
+        ApiEndpoints.verifyLogin,
         body: {
-          if (mobileOrEmail.contains('@'))
-            'email': mobileOrEmail
-          else
-            'mobile': mobileOrEmail,
+          'email': email,
           'otp': otp,
         },
         requiresAuth: false,
       );
 
-      print('✅ AuthService: Verify OTP Response - $response');
+      print('✅ Verify Login OTP Response: ${json.encode(response)}');
+
+      // Save tokens and user data if successful
+      if (response['success'] == true && response['data'] != null) {
+        final data = response['data'];
+
+        if (data['accessToken'] != null) {
+          await StorageService.saveToken(data['accessToken']);
+          print('🔑 Access token saved');
+        }
+
+        if (data['refreshToken'] != null) {
+          await StorageService.saveRefreshToken(data['refreshToken']);
+          print('🔑 Refresh token saved');
+        }
+
+        if (data['user'] != null) {
+          await StorageService.saveUser(data['user']);
+          print('👤 User data saved');
+        }
+      }
+
       return response;
     } catch (e) {
-      print('❌ AuthService: Verify OTP Error - $e');
+      print('❌ Verify Login OTP Error: $e');
       return {
         'success': false,
-        'message': 'Failed to verify OTP: ${e.toString()}',
-      };
-    }
-  }
-
-  // ==================== REGISTER ====================
-  Future<Map<String, dynamic>> register({
-    required String name,
-    required String mobile,
-    String? email,
-    required String gender,
-    required String dob,
-  }) async {
-    try {
-      print('📝 AuthService: Registering user');
-
-      final response = await _api.post(
-        ApiEndpoints.register,
-        body: {
-          'name': name,
-          'full_name': name,
-          'mobile': mobile,
-          if (email != null && email.isNotEmpty) 'email': email,
-          'gender': gender,
-          'dob': dob,
-        },
-        requiresAuth: false,
-      );
-
-      print('✅ AuthService: Register Response - $response');
-      return response;
-    } catch (e) {
-      print('❌ AuthService: Register Error - $e');
-      return {
-        'success': false,
-        'message': 'Registration failed: ${e.toString()}',
-      };
-    }
-  }
-
-  // ==================== LOGIN ====================
-  Future<Map<String, dynamic>> login({
-    String? mobile,
-    String? email,
-    String? password,
-    String? otp,
-  }) async {
-    try {
-      print('🔐 AuthService: Login attempt');
-
-      final response = await _api.post(
-        ApiEndpoints.login,
-        body: {
-          if (mobile != null) 'mobile': mobile,
-          if (email != null) 'email': email,
-          if (password != null) 'password': password,
-          if (otp != null) 'otp': otp,
-        },
-        requiresAuth: false,
-      );
-
-      print('✅ AuthService: Login Response - $response');
-      return response;
-    } catch (e) {
-      print('❌ AuthService: Login Error - $e');
-      return {
-        'success': false,
-        'message': 'Login failed: ${e.toString()}',
+        'message': 'OTP verification failed: ${e.toString()}',
+        'statusCode': 500,
       };
     }
   }
@@ -146,106 +246,81 @@ class AuthService {
         requiresAuth: true,
       );
 
-      // Clear storage even if API fails
+      // Always clear local storage
       await StorageService.logout();
 
-      print('✅ AuthService: Logout successful');
       return response;
     } catch (e) {
-      print('❌ AuthService: Logout Error - $e');
+      print('⚠️ Logout Error: $e');
       // Still clear local storage
       await StorageService.logout();
       return {
-        'success': true, // Return success since local logout worked
+        'success': true,
         'message': 'Logged out locally',
       };
     }
   }
 
-  // ==================== CHANGE PASSWORD ====================
-  Future<Map<String, dynamic>> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
+  // ==================== GET CURRENT USER ====================
+  Future<Map<String, dynamic>> getCurrentUser() async {
     try {
-      final response = await _api.post(
-        ApiEndpoints.changePassword,
-        body: {
-          'old_password': oldPassword,
-          'new_password': newPassword,
-        },
+      print('👤 AuthService: Getting current user');
+
+      final response = await _api.get(
+        ApiEndpoints.currentUser,
         requiresAuth: true,
       );
 
+      if (response['success'] == true && response['data'] != null) {
+        await StorageService.saveUser(response['data']);
+      }
+
       return response;
     } catch (e) {
-      print('❌ AuthService: Change Password Error - $e');
+      print('❌ Get Current User Error: $e');
       return {
         'success': false,
-        'message': 'Failed to change password: ${e.toString()}',
+        'message': 'Failed to get user: ${e.toString()}',
+        'statusCode': 500,
       };
     }
   }
 
   // ==================== FORGOT PASSWORD ====================
-  Future<Map<String, dynamic>> forgotPassword(String mobileOrEmail) async {
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
+      print('🔑 AuthService: Forgot password for $email');
+
       final response = await _api.post(
         ApiEndpoints.forgotPassword,
-        body: {
-          if (mobileOrEmail.contains('@'))
-            'email': mobileOrEmail
-          else
-            'mobile': mobileOrEmail,
-        },
+        body: {'email': email},
         requiresAuth: false,
       );
 
       return response;
     } catch (e) {
-      print('❌ AuthService: Forgot Password Error - $e');
+      print('❌ Forgot Password Error: $e');
       return {
         'success': false,
         'message': 'Failed to send reset link: ${e.toString()}',
+        'statusCode': 500,
       };
     }
   }
 
-  // ==================== REFRESH TOKEN ====================
-  Future<Map<String, dynamic>> refreshToken() async {
+  // ==================== CHECK AUTH STATUS ====================
+  Future<bool> isLoggedIn() async {
     try {
-      final refreshToken = StorageService.getRefreshToken();
-
-      if (refreshToken == null) {
-        return {
-          'success': false,
-          'message': 'No refresh token found',
-        };
-      }
-
-      final response = await _api.post(
-        ApiEndpoints.refreshToken,
-        body: {'refresh_token': refreshToken},
-        requiresAuth: false,
-      );
-
-      // Save new tokens if successful
-      if (response['success'] == true) {
-        if (response['token'] != null) {
-          await StorageService.saveToken(response['token']);
-        }
-        if (response['access_token'] != null) {
-          await StorageService.saveToken(response['access_token']);
-        }
-      }
-
-      return response;
+      final token = await StorageService.getToken();
+      return token != null && token.isNotEmpty;
     } catch (e) {
-      print('❌ AuthService: Refresh Token Error - $e');
-      return {
-        'success': false,
-        'message': 'Failed to refresh token: ${e.toString()}',
-      };
+      print('❌ Check Auth Status Error: $e');
+      return false;
     }
+  }
+
+  // ==================== GET TOKEN ====================
+  Future<String?> getToken() async {
+    return await StorageService.getToken();
   }
 }

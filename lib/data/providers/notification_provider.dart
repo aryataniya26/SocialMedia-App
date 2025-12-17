@@ -75,33 +75,33 @@ class NotificationProvider with ChangeNotifier {
   }
 
   // Mark All as Read
-  Future<void> markAllAsRead() async {
-    try {
-      await _apiService.put(
-        ApiEndpoints.readAll,
-        requiresAuth: true,
-      );
-
-      _notifications = _notifications.map((n) {
-        return NotificationModel(
-          notificationId: n.notificationId,
-          receiverId: n.receiverId,
-          senderId: n.senderId,
-          senderName: n.senderName,
-          senderAvatar: n.senderAvatar,
-          postId: n.postId,
-          reelId: n.reelId,
-          type: n.type,
-          message: n.message,
-          createdAt: n.createdAt,
-          isRead: true,
-        );
-      }).toList();
-
-      _unreadCount = 0;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error marking all as read: $e');
-    }
-  }
+  // Future<void> markAllAsRead() async {
+  //   try {
+  //     await _apiService.put(
+  //       ApiEndpoints.readAll,
+  //       requiresAuth: true,
+  //     );
+  //
+  //     _notifications = _notifications.map((n) {
+  //       return NotificationModel(
+  //         notificationId: n.notificationId,
+  //         receiverId: n.receiverId,
+  //         senderId: n.senderId,
+  //         senderName: n.senderName,
+  //         senderAvatar: n.senderAvatar,
+  //         postId: n.postId,
+  //         reelId: n.reelId,
+  //         type: n.type,
+  //         message: n.message,
+  //         createdAt: n.createdAt,
+  //         isRead: true,
+  //       );
+  //     }).toList();
+  //
+  //     _unreadCount = 0;
+  //     notifyListeners();
+  //   } catch (e) {
+  //     debugPrint('Error marking all as read: $e');
+  //   }
+  // }
 }

@@ -53,10 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openSearch() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const SearchScreen()),
-    );
   }
 
   void _openNotifications() {
@@ -187,37 +183,35 @@ class _HomeScreenState extends State<HomeScreen> {
         color: AppColors.primary,
         child: CustomScrollView(
           controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
           slivers: [
-            // Search Bar (WORKING)
+            // Search Bar
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: GestureDetector(
-                  onTap: _openSearch,
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.searchBackground,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: const [
-                        SizedBox(width: 12),
-                        Icon(
-                          Icons.search,
+                child: Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.searchBackground,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      SizedBox(width: 12),
+                      Icon(
+                        Icons.search,
+                        color: Color(0xFF9CA3AF),
+                        size: 22,
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Search your vibe',
+                        style: TextStyle(
                           color: Color(0xFF9CA3AF),
-                          size: 22,
+                          fontSize: 15,
                         ),
-                        SizedBox(width: 12),
-                        Text(
-                          'Search your vibe',
-                          style: TextStyle(
-                            color: Color(0xFF9CA3AF),
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -301,6 +295,8 @@ class _HomeScreenState extends State<HomeScreen> {
 // import '../../core/constants/app_colors.dart';
 // import '../../data/providers/post_provider.dart';
 // import '../search/search_screen.dart';
+// import '../chat/chat_list_screen.dart';
+// import '../notifications/notifications_screen.dart';
 // import 'widgets/story_widget.dart';
 // import 'widgets/post_card.dart';
 //
@@ -355,6 +351,57 @@ class _HomeScreenState extends State<HomeScreen> {
 //     );
 //   }
 //
+//   void _openNotifications() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+//     );
+//   }
+//
+//   void _openMessages() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (_) => const ChatListScreen()),
+//     );
+//   }
+//
+//   void _showMenu() {
+//     showModalBottomSheet(
+//       context: context,
+//       shape: const RoundedRectangleBorder(
+//         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//       ),
+//       builder: (context) {
+//         return Container(
+//           padding: const EdgeInsets.symmetric(vertical: 20),
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               ListTile(
+//                 leading: const Icon(Icons.settings),
+//                 title: const Text('Settings'),
+//                 onTap: () {
+//                   Navigator.pop(context);
+//                   // Navigate to settings
+//                 },
+//               ),
+//               ListTile(
+//                 leading: const Icon(Icons.info_outline),
+//                 title: const Text('About'),
+//                 onTap: () => Navigator.pop(context),
+//               ),
+//               ListTile(
+//                 leading: const Icon(Icons.help_outline),
+//                 title: const Text('Help'),
+//                 onTap: () => Navigator.pop(context),
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//   }
+//
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
@@ -398,35 +445,32 @@ class _HomeScreenState extends State<HomeScreen> {
 //           ],
 //         ),
 //         actions: [
+//           // Notifications Icon
 //           IconButton(
 //             icon: const Icon(
 //               Icons.favorite_border,
 //               color: AppColors.textPrimary,
 //               size: 26,
 //             ),
-//             onPressed: () {
-//               // TODO: Navigate to likes
-//             },
+//             onPressed: _openNotifications,
 //           ),
+//           // Messages Icon
 //           IconButton(
 //             icon: const Icon(
 //               Icons.chat_bubble_outline,
 //               color: AppColors.textPrimary,
 //               size: 26,
 //             ),
-//             onPressed: () {
-//               // TODO: Navigate to messages
-//             },
+//             onPressed: _openMessages,
 //           ),
+//           // Menu Icon
 //           IconButton(
 //             icon: const Icon(
 //               Icons.menu,
 //               color: AppColors.textPrimary,
 //               size: 26,
 //             ),
-//             onPressed: () {
-//               // TODO: Show menu
-//             },
+//             onPressed: _showMenu,
 //           ),
 //         ],
 //       ),
@@ -482,6 +526,31 @@ class _HomeScreenState extends State<HomeScreen> {
 //                     child: Center(
 //                       child: CircularProgressIndicator(
 //                         color: AppColors.primary,
+//                       ),
+//                     ),
+//                   );
+//                 }
+//
+//                 if (postProvider.posts.isEmpty) {
+//                   return const SliverFillRemaining(
+//                     child: Center(
+//                       child: Column(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           Icon(
+//                             Icons.photo_library_outlined,
+//                             size: 64,
+//                             color: AppColors.textLight,
+//                           ),
+//                           SizedBox(height: 16),
+//                           Text(
+//                             'No posts yet',
+//                             style: TextStyle(
+//                               fontSize: 16,
+//                               color: AppColors.textSecondary,
+//                             ),
+//                           ),
+//                         ],
 //                       ),
 //                     ),
 //                   );
